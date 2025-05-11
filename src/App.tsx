@@ -41,7 +41,7 @@ export default function EnergyPredictionApp() {
 			<Card>
 				<CardContent className="space-y-4 pt-4">
 					<Label className="text-lg font-semibold">Pilih Metode Prediksi</Label>
-					<div className="flex gap-4">
+					<div className="flex gap-4 text-white">
 						<Button
 							variant={method === "regression" ? "default" : "outline"}
 							onClick={() => setMethod("regression")}
