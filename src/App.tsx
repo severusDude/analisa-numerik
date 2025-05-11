@@ -11,16 +11,16 @@ export default function EnergyPredictionApp() {
 	const [years, setYears] = useState(
 		"2020,2400\n2021,2450\n2022,2500\n2023,2550\n2024,2600"
 	);
-	const [prediction, setPrediction] = useState(null);
+	const [prediction, setPrediction] = useState("");
 
 	const handlePredict = () => {
 		if (method === "regression") {
 			// Koefisien dummy dari hasil LINEST misalnya
-			const intercept = 1000;
-			const coefX1 = 0.0005;
-			const coefX2 = 0.0003;
+			const intercept = 1861.696284;
+			const coefX1 = 2.066805807;
+			const coefX2 = 4.434248106;
 			const y = intercept + coefX1 * x1 + coefX2 * x2;
-			setPrediction(y.toFixed(2));
+			setPrediction(`${y.toFixed(2)}`);
 		} else {
 			// Ekstrapolasi linier berdasarkan data waktu
 			const rows = years.split("\n").map((row) => row.split(",").map(Number));
