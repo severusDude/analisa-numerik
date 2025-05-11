@@ -37,61 +37,65 @@ export default function EnergyPredictionApp() {
 	};
 
 	return (
-		<div className="max-w-xl mx-auto p-4 space-y-6">
-			<Card>
-				<CardContent className="space-y-4 pt-4">
-					<Label className="text-lg font-semibold">Pilih Metode Prediksi</Label>
-					<div className="flex gap-4 text-white">
-						<Button
-							variant={method === "regression" ? "default" : "outline"}
-							onClick={() => setMethod("regression")}
-						>
-							Regresi Linear
-						</Button>
-						<Button
-							variant={method === "extrapolation" ? "default" : "outline"}
-							onClick={() => setMethod("extrapolation")}
-						>
-							Ekstrapolasi
-						</Button>
-					</div>
-
-					{method === "regression" ? (
-						<>
-							<Label>Jumlah Penduduk (X1)</Label>
-							<Input
-								type="number"
-								value={x1}
-								onChange={(e) => setX1(Number(e.target.value))}
-							/>
-							<Label>Pendapatan per Kapita (X2)</Label>
-							<Input
-								type="number"
-								value={x2}
-								onChange={(e) => setX2(Number(e.target.value))}
-							/>
-						</>
-					) : (
-						<>
-							<Label>Data Konsumsi Energi per Tahun (Tahun,Y)</Label>
-							<textarea
-								className="w-full border rounded p-2 text-sm"
-								rows={5}
-								value={years}
-								onChange={(e) => setYears(e.target.value)}
-							/>
-						</>
-					)}
-
-					<Button onClick={handlePredict}>Prediksi</Button>
-
-					{prediction && (
-						<div className="mt-4 p-4 bg-green-100 rounded">
-							<strong>Hasil Prediksi:</strong> {prediction} kkal/kapita/hari
+		<div className="w-screen flex justify-center items-center">
+			<div className="max-w-xl mx-auto p-4 space-y-6">
+				<Card>
+					<CardContent className="space-y-4 pt-4">
+						<Label className="text-lg font-semibold">
+							Pilih Metode Prediksi
+						</Label>
+						<div className="flex gap-4 text-white">
+							<Button
+								variant={method === "regression" ? "default" : "outline"}
+								onClick={() => setMethod("regression")}
+							>
+								Regresi Linear
+							</Button>
+							<Button
+								variant={method === "extrapolation" ? "default" : "outline"}
+								onClick={() => setMethod("extrapolation")}
+							>
+								Ekstrapolasi
+							</Button>
 						</div>
-					)}
-				</CardContent>
-			</Card>
+
+						{method === "regression" ? (
+							<>
+								<Label>Jumlah Penduduk (X1)</Label>
+								<Input
+									type="number"
+									value={x1}
+									onChange={(e) => setX1(Number(e.target.value))}
+								/>
+								<Label>Pendapatan per Kapita (X2)</Label>
+								<Input
+									type="number"
+									value={x2}
+									onChange={(e) => setX2(Number(e.target.value))}
+								/>
+							</>
+						) : (
+							<>
+								<Label>Data Konsumsi Energi per Tahun (Tahun,Y)</Label>
+								<textarea
+									className="w-full border rounded p-2 text-sm"
+									rows={5}
+									value={years}
+									onChange={(e) => setYears(e.target.value)}
+								/>
+							</>
+						)}
+
+						<Button onClick={handlePredict}>Prediksi</Button>
+
+						{prediction && (
+							<div className="mt-4 p-4 bg-green-100 rounded">
+								<strong>Hasil Prediksi:</strong> {prediction} kkal/kapita/hari
+							</div>
+						)}
+					</CardContent>
+				</Card>
+			</div>
 		</div>
 	);
 }
