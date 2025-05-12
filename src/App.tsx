@@ -1,101 +1,48 @@
-import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import DashboardUI from "./components/DashboardUI";
 
-export default function EnergyPredictionApp() {
-	const [method, setMethod] = useState("regression");
-	const [x1, setX1] = useState(0); // Jumlah Penduduk
-	const [x2, setX2] = useState(0); // Pendapatan per Kapita
-	const [years, setYears] = useState(
-		"2020,2400\n2021,2450\n2022,2500\n2023,2550\n2024,2600"
-	);
-	const [prediction, setPrediction] = useState("");
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+            Sistem Prediksi Konsumsi Energi
+          </h1>
+          <p className="mt-2 text-lg text-gray-600">
+            Prediksi konsumsi energi untuk tahun 2024 berdasarkan data historis
+          </p>
+        </div>
 
-	const handlePredict = () => {
-		if (method === "regression") {
-			// Koefisien dummy dari hasil LINEST misalnya
-			const intercept = 1861.696284;
-			const coefX1 = 2.066805807;
-			const coefX2 = 4.434248106;
-			const y = intercept + coefX1 * x1 + coefX2 * x2;
-			setPrediction(`${y.toFixed(2)}`);
-		} else {
-			// Ekstrapolasi linier berdasarkan data waktu
-			const rows = years.split("\n").map((row) => row.split(",").map(Number));
-			const n = rows.length;
-			const last = rows[n - 1];
-			const first = rows[0];
-			const slope = (last[1] - first[1]) / (last[0] - first[0]);
-			const predictedYear = last[0] + 1;
-			const predictedY = last[1] + slope;
-			setPrediction(
-				`${predictedYear}: ${predictedY.toFixed(2)} kkal/kapita/hari`
-			);
-		}
-	};
+        <Suspense fallback={<DashboardSkeleton />}>
+          <DashboardUI />
+        </Suspense>
+      </div>
+    </main>
+  );
+}
 
-	return (
-		<div className="w-screen flex justify-center items-center">
-			<div className="max-w-xl mx-auto p-4 space-y-6">
-				<Card>
-					<CardContent className="space-y-4 pt-4">
-						<Label className="text-lg font-semibold">
-							Pilih Metode Prediksi
-						</Label>
-						<div className="flex gap-4 text-white">
-							<Button
-								variant={method === "regression" ? "default" : "outline"}
-								onClick={() => setMethod("regression")}
-							>
-								Regresi Linear
-							</Button>
-							<Button
-								variant={method === "extrapolation" ? "default" : "outline"}
-								onClick={() => setMethod("extrapolation")}
-							>
-								Ekstrapolasi
-							</Button>
-						</div>
-
-						{method === "regression" ? (
-							<>
-								<Label>Jumlah Penduduk (X1)</Label>
-								<Input
-									type="number"
-									value={x1}
-									onChange={(e) => setX1(Number(e.target.value))}
-								/>
-								<Label>Pendapatan per Kapita (X2)</Label>
-								<Input
-									type="number"
-									value={x2}
-									onChange={(e) => setX2(Number(e.target.value))}
-								/>
-							</>
-						) : (
-							<>
-								<Label>Data Konsumsi Energi per Tahun (Tahun,Y)</Label>
-								<textarea
-									className="w-full border rounded p-2 text-sm"
-									rows={5}
-									value={years}
-									onChange={(e) => setYears(e.target.value)}
-								/>
-							</>
-						)}
-
-						<Button onClick={handlePredict}>Prediksi</Button>
-
-						{prediction && (
-							<div className="mt-4 p-4 bg-green-100 rounded">
-								<strong>Hasil Prediksi:</strong> {prediction} kkal/kapita/hari
-							</div>
-						)}
-					</CardContent>
-				</Card>
-			</div>
-		</div>
-	);
+function DashboardSkeleton() {
+  return (
+    <div className="rounded-lg border bg-white p-6 shadow-sm">
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <Skeleton className="h-10 w-32" />
+        <Skeleton className="h-[300px] w-full" />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+      </div>
+    </div>
+  );
 }
