@@ -1,410 +1,418 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+	Area,
+	AreaChart,
+	CartesianGrid,
+	ResponsiveContainer,
+	Tooltip,
+	XAxis,
+	YAxis,
 } from "recharts";
 import { AlertCircle, HelpCircle, Info, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
 } from "@/components/ui/card";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
 } from "@/components/ui/select";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
-  Tooltip as UITooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+	Tooltip as UITooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type HistoricalDataType = {
-  year: number;
-  consumption: number;
-  isPrediction?: boolean;
+	year: number;
+	consumption: number;
+	isPrediction?: boolean;
 };
 
 const historicalData: HistoricalDataType[] = [
-  { year: 2017, consumption: 42500 },
-  { year: 2018, consumption: 45200 },
-  { year: 2019, consumption: 48700 },
-  { year: 2020, consumption: 46300 },
-  { year: 2021, consumption: 49800 },
-  { year: 2022, consumption: 52400 },
-  { year: 2023, consumption: 55100 },
-];
-
-const provinces = [
-  "Jakarta",
-  "Jawa Barat",
-  "Jawa Tengah",
-  "Jawa Timur",
-  "Yogyakarta",
-  "Bali",
-  "Sumatera Utara",
-  "Sumatera Selatan",
-  "Sumatera Barat",
-  "Banten",
+	{ year: 2017, consumption: 42500 },
+	{ year: 2018, consumption: 45200 },
+	{ year: 2019, consumption: 48700 },
+	{ year: 2020, consumption: 46300 },
+	{ year: 2021, consumption: 49800 },
+	{ year: 2022, consumption: 52400 },
+	{ year: 2023, consumption: 55100 },
 ];
 
 export default function DashboardUI() {
-  const [selectedProvince, setSelectedProvince] = useState("");
-  const [selectedAlgorithm, setSelectedAlgorithm] =
-    useState("linear-regression");
-  const [isLoading, setIsLoading] = useState(false);
-  const [predictionResult, setPredictionResult] = useState<null | {
-    consumption: number;
-    confidence: number;
-    growthRate: number;
-  }>(null);
-  const [chartData, setChartData] = useState(historicalData);
+	const [provinces, setProvinces] = useState([]);
+	const [selectedProvince, setSelectedProvince] = useState("");
+	const [selectedAlgorithm, setSelectedAlgorithm] =
+		useState("linear-regression");
+	const [isLoading, setIsLoading] = useState(false);
+	const [predictionResult, setPredictionResult] = useState<null | {
+		consumption: number;
+		confidence: number;
+		growthRate: number;
+	}>(null);
+	const [chartData, setChartData] = useState(historicalData);
 
-  const handlePredict = () => {
-    if (!selectedProvince) {
-      return;
-    }
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				const response = await fetch("http://127.0.0.1:5000/api/getprovinces");
 
-    setIsLoading(true);
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
 
-    setTimeout(() => {
-      let predictedValue;
-      let confidence;
+				const data = await response.json();
 
-      if (selectedAlgorithm === "linear-regression") {
-        predictedValue = 58200;
-        confidence = 92;
-      } else {
-        predictedValue = 57800;
-        confidence = 88;
-      }
+				setProvinces(data);
+			} catch (error) {
+				console.error("Error fetching data:", error);
+			}
+		};
 
-      const lastYearConsumption =
-        historicalData[historicalData.length - 1].consumption;
-      const growthRate =
-        ((predictedValue - lastYearConsumption) / lastYearConsumption) * 100;
+		fetchData();
+	}, []);
 
-      setPredictionResult({
-        consumption: predictedValue,
-        confidence,
-        growthRate,
-      });
+	const handlePredict = () => {
+		if (!selectedProvince) {
+			return;
+		}
 
-      setChartData([
-        ...historicalData,
-        { year: 2024, consumption: predictedValue, isPrediction: true },
-      ]);
+		setIsLoading(true);
 
-      setIsLoading(false);
-    }, 1500);
-  };
+		setTimeout(() => {
+			let predictedValue;
+			let confidence;
 
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat("id-ID").format(num);
-  };
+			if (selectedAlgorithm === "linear-regression") {
+				predictedValue = 58200;
+				confidence = 92;
+			} else {
+				predictedValue = 57800;
+				confidence = 88;
+			}
 
-  return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Prediksi Konsumsi Energi</CardTitle>
-          <CardDescription>
-            Pilih provinsi dan algoritma prediksi untuk memperkirakan konsumsi
-            energi pada tahun 2024
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <label htmlFor="province" className="text-sm font-medium">
-                  Provinsi
-                </label>
-                <TooltipProvider>
-                  <UITooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="h-4 w-4" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">
-                        Pilih provinsi untuk melihat dan memprediksi konsumsi
-                        energinya
-                      </p>
-                    </TooltipContent>
-                  </UITooltip>
-                </TooltipProvider>
-              </div>
-              <Select
-                value={selectedProvince}
-                onValueChange={setSelectedProvince}
-              >
-                <SelectTrigger id="province">
-                  <SelectValue placeholder="Pilih provinsi" />
-                </SelectTrigger>
-                <SelectContent>
-                  {provinces.map((province) => (
-                    <SelectItem key={province} value={province.toLowerCase()}>
-                      {province}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+			const lastYearConsumption =
+				historicalData[historicalData.length - 1].consumption;
+			const growthRate =
+				((predictedValue - lastYearConsumption) / lastYearConsumption) * 100;
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <label htmlFor="algorithm" className="text-sm font-medium">
-                  Algoritma Prediksi
-                </label>
-                <TooltipProvider>
-                  <UITooltip>
-                    <TooltipTrigger asChild>
-                      <HelpCircle className="h-4 w-4 text-gray-400" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">
-                        Pilih algoritma yang digunakan untuk perhitungan
-                        prediksi
-                      </p>
-                    </TooltipContent>
-                  </UITooltip>
-                </TooltipProvider>
-              </div>
-              <Tabs
-                value={selectedAlgorithm}
-                onValueChange={setSelectedAlgorithm}
-              >
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="linear-regression">
-                    Regresi Linier
-                  </TabsTrigger>
-                  <TabsTrigger value="extrapolation">Ekstrapolasi</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-          </div>
+			setPredictionResult({
+				consumption: predictedValue,
+				confidence,
+				growthRate,
+			});
 
-          <Button
-            onClick={handlePredict}
-            disabled={!selectedProvince || isLoading}
-            className="w-full md:w-auto"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Menghitung...
-              </>
-            ) : (
-              "Prediksi Konsumsi Energi"
-            )}
-          </Button>
+			setChartData([
+				...historicalData,
+				{ year: 2024, consumption: predictedValue, isPrediction: true },
+			]);
 
-          {!selectedProvince && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Bidang wajib</AlertTitle>
-              <AlertDescription>
-                Silakan pilih provinsi untuk melakukan prediksi.
-              </AlertDescription>
-            </Alert>
-          )}
+			setIsLoading(false);
+		}, 1500);
+	};
 
-          <div className="mt-8">
-            <h3 className="mb-4 text-lg font-medium">
-              Konsumsi Historis & Prediksi
-            </h3>
-            <div className="h-[400px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={chartData}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="colorConsumption"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8} />
-                      <stop
-                        offset="95%"
-                        stopColor="#0ea5e9"
-                        stopOpacity={0.1}
-                      />
-                    </linearGradient>
-                    <linearGradient
-                      id="colorPrediction"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.8} />
-                      <stop
-                        offset="95%"
-                        stopColor="#f97316"
-                        stopOpacity={0.1}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" tickLine={false} />
-                  <YAxis
-                    tickFormatter={(value) => `${value / 1000}k`}
-                    tickLine={false}
-                    label={{
-                      value: "kWh",
-                      angle: -90,
-                      position: "insideLeft",
-                      style: { textAnchor: "middle" },
-                    }}
-                  />
-                  <Tooltip
-                    formatter={(value) => [
-                      `${formatNumber(value as number)} kWh`,
-                      "Konsumsi",
-                    ]}
-                    labelFormatter={(label) => `Tahun: ${label}`}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="consumption"
-                    stroke="#0ea5e9"
-                    fillOpacity={1}
-                    fill="url(#colorConsumption)"
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+	const formatNumber = (num: number) => {
+		return new Intl.NumberFormat("id-ID").format(num);
+	};
 
-          {predictionResult && (
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-500">
-                    Prediksi Konsumsi (2024)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-sky-600">
-                    {formatNumber(predictionResult.consumption)} kWh
-                  </div>
-                  <Badge className="mt-2 bg-orange-500">
-                    {selectedProvince
-                      ? provinces.find(
-                          (p) => p.toLowerCase() === selectedProvince
-                        )
-                      : "N/A"}
-                  </Badge>
-                </CardContent>
-              </Card>
+	return (
+		<div className="space-y-6">
+			<Card>
+				<CardHeader>
+					<CardTitle>Prediksi Konsumsi Energi</CardTitle>
+					<CardDescription>
+						Pilih provinsi dan algoritma prediksi untuk memperkirakan konsumsi
+						energi pada tahun 2024
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-6">
+					<div className="grid gap-6 md:grid-cols-2">
+						<div className="space-y-2">
+							<div className="flex items-center gap-2">
+								<label htmlFor="province" className="text-sm font-medium">
+									Provinsi
+								</label>
+								<TooltipProvider>
+									<UITooltip>
+										<TooltipTrigger asChild>
+											<HelpCircle className="h-4 w-4" />
+										</TooltipTrigger>
+										<TooltipContent>
+											<p className="max-w-xs">
+												Pilih provinsi untuk melihat dan memprediksi konsumsi
+												energinya
+											</p>
+										</TooltipContent>
+									</UITooltip>
+								</TooltipProvider>
+							</div>
+							<Select
+								value={selectedProvince}
+								onValueChange={setSelectedProvince}
+							>
+								<SelectTrigger id="province">
+									<SelectValue placeholder="Pilih provinsi" />
+								</SelectTrigger>
+								<SelectContent>
+									{provinces.map((province) => (
+										<SelectItem key={province} value={province.toLowerCase()}>
+											{province}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-500">
-                    Tingkat Kepercayaan
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-sky-600">
-                    {predictionResult.confidence}%
-                  </div>
-                  <div className="mt-2 text-sm text-gray-500">
-                    Berdasarkan{" "}
-                    {selectedAlgorithm === "linear-regression"
-                      ? "Regresi Linier"
-                      : "Ekstrapolasi"}
-                  </div>
-                </CardContent>
-              </Card>
+						<div className="space-y-2">
+							<div className="flex items-center gap-2">
+								<label htmlFor="algorithm" className="text-sm font-medium">
+									Algoritma Prediksi
+								</label>
+								<TooltipProvider>
+									<UITooltip>
+										<TooltipTrigger asChild>
+											<HelpCircle className="h-4 w-4 text-gray-400" />
+										</TooltipTrigger>
+										<TooltipContent>
+											<p className="max-w-xs">
+												Pilih algoritma yang digunakan untuk perhitungan
+												prediksi
+											</p>
+										</TooltipContent>
+									</UITooltip>
+								</TooltipProvider>
+							</div>
+							<Tabs
+								value={selectedAlgorithm}
+								onValueChange={setSelectedAlgorithm}
+							>
+								<TabsList className="grid w-full grid-cols-2">
+									<TabsTrigger value="linear-regression">
+										Regresi Linier
+									</TabsTrigger>
+									<TabsTrigger value="extrapolation">Ekstrapolasi</TabsTrigger>
+								</TabsList>
+							</Tabs>
+						</div>
+					</div>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-500">
-                    Pertumbuhan Tahunan
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-sky-600">
-                    +{predictionResult.growthRate.toFixed(2)}%
-                  </div>
-                  <div className="mt-2 text-sm text-gray-500">
-                    Dibandingkan tahun 2023
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+					<Button
+						onClick={handlePredict}
+						disabled={!selectedProvince || isLoading}
+						className="w-full md:w-auto"
+					>
+						{isLoading ? (
+							<>
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								Menghitung...
+							</>
+						) : (
+							"Prediksi Konsumsi Energi"
+						)}
+					</Button>
 
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="model-info">
-              <AccordionTrigger className="text-base font-medium">
-                <div className="flex items-center gap-2">
-                  <Info className="h-4 w-4" />
-                  Informasi Model
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="text-sm">
-                <div className="space-y-4 rounded-md bg-gray-50 p-4">
-                  <div>
-                    <h4 className="font-medium">Regresi Linier</h4>
-                    <p className="text-gray-600">
-                      Regresi linier memprediksi nilai masa depan dengan mencari
-                      garis lurus terbaik yang cocok dengan data historis. Cocok
-                      untuk data dengan tren konsisten dan variasi musiman yang
-                      minim.
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Ekstrapolasi</h4>
-                    <p className="text-gray-600">
-                      Ekstrapolasi memperluas tren masa lalu ke masa depan
-                      dengan mempertimbangkan pola terbaru secara lebih dominan.
-                      Cocok untuk menangkap percepatan atau perlambatan konsumsi
-                      energi.
-                    </p>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </CardContent>
-      </Card>
+					{!selectedProvince && (
+						<Alert variant="destructive" className="mt-4">
+							<AlertCircle className="h-4 w-4" />
+							<AlertTitle>Bidang wajib</AlertTitle>
+							<AlertDescription>
+								Silakan pilih provinsi untuk melakukan prediksi.
+							</AlertDescription>
+						</Alert>
+					)}
 
-      <div className="flex justify-end gap-2">
-        <Button variant="outline">Ekspor ke PDF</Button>
-        <Button variant="outline">Ekspor ke CSV</Button>
-      </div>
-    </div>
-  );
+					<div className="mt-8">
+						<h3 className="mb-4 text-lg font-medium">
+							Konsumsi Historis & Prediksi
+						</h3>
+						<div className="h-[400px] w-full">
+							<ResponsiveContainer width="100%" height="100%">
+								<AreaChart
+									data={chartData}
+									margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+								>
+									<defs>
+										<linearGradient
+											id="colorConsumption"
+											x1="0"
+											y1="0"
+											x2="0"
+											y2="1"
+										>
+											<stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8} />
+											<stop
+												offset="95%"
+												stopColor="#0ea5e9"
+												stopOpacity={0.1}
+											/>
+										</linearGradient>
+										<linearGradient
+											id="colorPrediction"
+											x1="0"
+											y1="0"
+											x2="0"
+											y2="1"
+										>
+											<stop offset="5%" stopColor="#f97316" stopOpacity={0.8} />
+											<stop
+												offset="95%"
+												stopColor="#f97316"
+												stopOpacity={0.1}
+											/>
+										</linearGradient>
+									</defs>
+									<CartesianGrid strokeDasharray="3 3" />
+									<XAxis dataKey="year" tickLine={false} />
+									<YAxis
+										tickFormatter={(value) => `${value / 1000}k`}
+										tickLine={false}
+										label={{
+											value: "kWh",
+											angle: -90,
+											position: "insideLeft",
+											style: { textAnchor: "middle" },
+										}}
+									/>
+									<Tooltip
+										formatter={(value) => [
+											`${formatNumber(value as number)} kWh`,
+											"Konsumsi",
+										]}
+										labelFormatter={(label) => `Tahun: ${label}`}
+									/>
+									<Area
+										type="monotone"
+										dataKey="consumption"
+										stroke="#0ea5e9"
+										fillOpacity={1}
+										fill="url(#colorConsumption)"
+										strokeWidth={2}
+										dot={{ r: 4 }}
+										activeDot={{ r: 6 }}
+									/>
+								</AreaChart>
+							</ResponsiveContainer>
+						</div>
+					</div>
+
+					{predictionResult && (
+						<div className="grid gap-4 md:grid-cols-3">
+							<Card>
+								<CardHeader className="pb-2">
+									<CardTitle className="text-sm font-medium text-gray-500">
+										Prediksi Konsumsi (2024)
+									</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<div className="text-2xl font-bold text-sky-600">
+										{formatNumber(predictionResult.consumption)} kWh
+									</div>
+									<Badge className="mt-2 bg-orange-500">
+										{selectedProvince
+											? provinces.find(
+													(p) => p.toLowerCase() === selectedProvince
+											  )
+											: "N/A"}
+									</Badge>
+								</CardContent>
+							</Card>
+
+							<Card>
+								<CardHeader className="pb-2">
+									<CardTitle className="text-sm font-medium text-gray-500">
+										Tingkat Kepercayaan
+									</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<div className="text-2xl font-bold text-sky-600">
+										{predictionResult.confidence}%
+									</div>
+									<div className="mt-2 text-sm text-gray-500">
+										Berdasarkan{" "}
+										{selectedAlgorithm === "linear-regression"
+											? "Regresi Linier"
+											: "Ekstrapolasi"}
+									</div>
+								</CardContent>
+							</Card>
+
+							<Card>
+								<CardHeader className="pb-2">
+									<CardTitle className="text-sm font-medium text-gray-500">
+										Pertumbuhan Tahunan
+									</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<div className="text-2xl font-bold text-sky-600">
+										+{predictionResult.growthRate.toFixed(2)}%
+									</div>
+									<div className="mt-2 text-sm text-gray-500">
+										Dibandingkan tahun 2023
+									</div>
+								</CardContent>
+							</Card>
+						</div>
+					)}
+
+					<Accordion type="single" collapsible className="w-full">
+						<AccordionItem value="model-info">
+							<AccordionTrigger className="text-base font-medium">
+								<div className="flex items-center gap-2">
+									<Info className="h-4 w-4" />
+									Informasi Model
+								</div>
+							</AccordionTrigger>
+							<AccordionContent className="text-sm">
+								<div className="space-y-4 rounded-md bg-gray-50 p-4">
+									<div>
+										<h4 className="font-medium">Regresi Linier</h4>
+										<p className="text-gray-600">
+											Regresi linier memprediksi nilai masa depan dengan mencari
+											garis lurus terbaik yang cocok dengan data historis. Cocok
+											untuk data dengan tren konsisten dan variasi musiman yang
+											minim.
+										</p>
+									</div>
+									<div>
+										<h4 className="font-medium">Ekstrapolasi</h4>
+										<p className="text-gray-600">
+											Ekstrapolasi memperluas tren masa lalu ke masa depan
+											dengan mempertimbangkan pola terbaru secara lebih dominan.
+											Cocok untuk menangkap percepatan atau perlambatan konsumsi
+											energi.
+										</p>
+									</div>
+								</div>
+							</AccordionContent>
+						</AccordionItem>
+					</Accordion>
+				</CardContent>
+			</Card>
+
+			<div className="flex justify-end gap-2">
+				<Button variant="outline">Ekspor ke PDF</Button>
+				<Button variant="outline">Ekspor ke CSV</Button>
+			</div>
+		</div>
+	);
 }
