@@ -96,7 +96,7 @@ def linear_regression():
     plot_base64 = generate_plot(
         provinsi=provinsi,
         historical_data=df[["Tahun", "KonsumsiEnergi"]],
-        prediction_2024=prediksi_2024
+        prediction_2024=float(prediksi_2024[0]),
     )
 
     return {
@@ -107,8 +107,9 @@ def linear_regression():
         "pendapatan_2024": pendapatan_2024,
         "growth_penduduk": growth_penduduk,
         "growth_pendapatan": growth_pendapatan,
-        "plot": plot_base64
+        "plot": plot_base64,
     }
+
 
 def generate_plot(provinsi, historical_data, prediction_2024):
     """
@@ -118,45 +119,53 @@ def generate_plot(provinsi, historical_data, prediction_2024):
     :param prediction_2024: Nilai prediksi untuk tahun 2024
     :return: Base64 encoded plot image
     """
+    # Konversi prediksi ke float jika masih array
+    if isinstance(prediction_2024, np.ndarray):
+        prediction_2024 = float(prediction_2024)
+
     # Buat plot
     plt.figure(figsize=(10, 6))
-    
+
     # Plot data historis
-    plt.plot(historical_data["Tahun"], historical_data["KonsumsiEnergi"], 
-             marker='o', 
-             linestyle='-', 
-             color='b', 
-             label='Data Historis')
-    
+    plt.plot(
+        historical_data["Tahun"],
+        historical_data["KonsumsiEnergi"],
+        marker="o",
+        linestyle="-",
+        color="b",
+        label="Data Historis",
+    )
+
     # Plot prediksi 2024
-    plt.scatter(2024, prediction_2024, 
-                color='r', 
-                s=100, 
-                label='Prediksi 2024',
-                zorder=5)
-    
+    plt.scatter(
+        2024, prediction_2024, color="r", s=100, label="Prediksi 2024", zorder=5
+    )
+
     # Anotasi untuk prediksi
-    plt.annotate(f'{prediction_2024:.2f}', 
-                 (2024, prediction_2024),
-                 textcoords="offset points",
-                 xytext=(0,10),
-                 ha='center')
-    
+    plt.annotate(
+        f"{prediction_2024:.2f}",
+        (2024, prediction_2024),
+        textcoords="offset points",
+        xytext=(0, 10),
+        ha="center",
+    )
+
     # Format plot
-    plt.title(f'Konsumsi Energi di {provinsi} (2019-2024)')
-    plt.xlabel('Tahun')
-    plt.ylabel('Konsumsi Energi (kkal/kap/hari)')
+    plt.title(f"Konsumsi Energi di {provinsi} (2019-2024)")
+    plt.xlabel("Tahun")
+    plt.ylabel("Konsumsi Energi (kkal/kap/hari)")
     plt.legend()
     plt.grid(True)
-    
+
     # Konversi plot ke base64
     buf = io.BytesIO()
-    plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')
+    plt.savefig(buf, format="png", dpi=100, bbox_inches="tight")
     buf.seek(0)
-    plot_base64 = base64.b64encode(buf.read()).decode('utf-8')
+    plot_base64 = base64.b64encode(buf.read()).decode("utf-8")
     plt.close()
-    
+
     return plot_base64
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

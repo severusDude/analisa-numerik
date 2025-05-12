@@ -66,9 +66,15 @@ export default function DashboardUI() {
     useState("linear-regression");
   const [isLoading, setIsLoading] = useState(false);
   const [predictionResult, setPredictionResult] = useState<null | {
-    consumption: number;
-    confidence: number;
-    growthRate: number;
+    consumption?: number;
+    confidence?: number;
+    growthRate?: number;
+    dataPredction?: number;
+    growthPendapatan?: number;
+    growthPenduduk?: number;
+    pendapatan_2024?: number;
+    penduduk_2024?: number;
+    image?: string;
   }>(null);
   const [chartData, setChartData] = useState(historicalData);
 
@@ -99,22 +105,37 @@ export default function DashboardUI() {
 
     setIsLoading(true);
 
-    const response = await fetch("http://127.0.0.1:5000/api/linearregression", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        provinsi: selectedProvince,
-      }),
-    });
+    try {
+      const response = await fetch(
+        "http://127.0.0.1:5000/api/linearregression",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            provinsi: selectedProvince,
+          }),
+        }
+      );
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      setPredictionResult({
+        dataPredction: data.data as number,
+        image: data.plot,
+        growthPendapatan: data.growth_penduduk,
+        growthPenduduk: data.growth_pendapatan,
+      });
+    } catch (error) {
+      throw new Error(`Error fetching prediction: ${error}`);
+    } finally {
+      setIsLoading(false);
     }
-
-    const data = await response.json();
-    console.log("Response Data:", data);
   };
 
   const formatNumber = (num: number) => {
@@ -232,72 +253,12 @@ export default function DashboardUI() {
               Konsumsi Historis & Prediksi
             </h3>
             <div className="h-[400px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={chartData}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="colorConsumption"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8} />
-                      <stop
-                        offset="95%"
-                        stopColor="#0ea5e9"
-                        stopOpacity={0.1}
-                      />
-                    </linearGradient>
-                    <linearGradient
-                      id="colorPrediction"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.8} />
-                      <stop
-                        offset="95%"
-                        stopColor="#f97316"
-                        stopOpacity={0.1}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" tickLine={false} />
-                  <YAxis
-                    tickFormatter={(value) => `${value / 1000}k`}
-                    tickLine={false}
-                    label={{
-                      value: "kWh",
-                      angle: -90,
-                      position: "insideLeft",
-                      style: { textAnchor: "middle" },
-                    }}
-                  />
-                  <Tooltip
-                    formatter={(value) => [
-                      `${formatNumber(value as number)} kWh`,
-                      "Konsumsi",
-                    ]}
-                    labelFormatter={(label) => `Tahun: ${label}`}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="consumption"
-                    stroke="#0ea5e9"
-                    fillOpacity={1}
-                    fill="url(#colorConsumption)"
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              {predictionResult?.image && (
+                <img
+                  src={`data:image/png;base64,${predictionResult?.image}`}
+                  alt=""
+                />
+              )}
             </div>
           </div>
 
@@ -311,7 +272,8 @@ export default function DashboardUI() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-sky-600">
-                    {formatNumber(predictionResult.consumption)} kWh
+                    {formatNumber(predictionResult?.dataPredction!)}{" "}
+                    kkal/kap/hari
                   </div>
                   <Badge className="mt-2 bg-orange-500">
                     {selectedProvince
@@ -345,12 +307,27 @@ export default function DashboardUI() {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-gray-500">
-                    Pertumbuhan Tahunan
+                    Pertumbuhan Penduduk Tahunan
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-sky-600">
-                    +{predictionResult.growthRate.toFixed(2)}%
+                    +{predictionResult?.growthPenduduk?.toFixed(3)}%
+                  </div>
+                  <div className="mt-2 text-sm text-gray-500">
+                    Dibandingkan tahun 2023
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">
+                    Pertumbuhan Penghasilan Tahunan
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-sky-600">
+                    +{predictionResult?.growthPendapatan?.toFixed(3)}%
                   </div>
                   <div className="mt-2 text-sm text-gray-500">
                     Dibandingkan tahun 2023
