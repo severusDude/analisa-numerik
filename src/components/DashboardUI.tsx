@@ -304,7 +304,7 @@ export default function DashboardUI() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-sky-600">
-                      {predictionResult.accurate}%
+                      {predictionResult?.accurate?.toFixed(3)}%
                     </div>
                     <div className="mt-2 text-sm text-gray-500">
                       Berdasarkan{" "}
