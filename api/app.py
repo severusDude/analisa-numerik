@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -92,6 +93,14 @@ def linear_regression():
 
     print(prediksi_2024)
 
+    y_pred = model.predict(X)
+    mse = mean_squared_error(y, y_pred)
+    r2 = r2_score(y, y_pred)
+
+    print(f"\nEvaluasi Model:")
+    print(f"Mean Squared Error (MSE): {mse:.2f}")
+    print(f"R-squared (R²): {r2:.4f}")
+
     # Buat plot dengan memanggil fungsi terpisah
     plot_base64 = generate_plot(
         provinsi=provinsi,
@@ -108,6 +117,8 @@ def linear_regression():
         "growth_penduduk": growth_penduduk,
         "growth_pendapatan": growth_pendapatan,
         "plot": plot_base64,
+        "galat": mse,
+        "accurate": r2,
     }
 
 

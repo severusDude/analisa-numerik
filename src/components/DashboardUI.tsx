@@ -75,6 +75,8 @@ export default function DashboardUI() {
     pendapatan_2024?: number;
     penduduk_2024?: number;
     image?: string;
+    galat?: number;
+    accurate?: number;
   }>(null);
   const [chartData, setChartData] = useState(historicalData);
 
@@ -130,6 +132,8 @@ export default function DashboardUI() {
         image: data.plot,
         growthPendapatan: data.growth_penduduk,
         growthPenduduk: data.growth_pendapatan,
+        accurate: data.accurate,
+        galat: data.galat,
       });
     } catch (error) {
       throw new Error(`Error fetching prediction: ${error}`);
@@ -252,11 +256,12 @@ export default function DashboardUI() {
             <h3 className="mb-4 text-lg font-medium">
               Konsumsi Historis & Prediksi
             </h3>
-            <div className="h-[400px] w-full">
+            <div className="h-[400px] md:h-[360px] w-full">
               {predictionResult?.image && (
                 <img
+                  className="w-full h-full object-contain"
                   src={`data:image/png;base64,${predictionResult?.image}`}
-                  alt=""
+                  alt="Plot Konsumsi Energi"
                 />
               )}
             </div>
@@ -288,12 +293,12 @@ export default function DashboardUI() {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-gray-500">
-                    Tingkat Kepercayaan
+                    Tingkat Akurasi
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-sky-600">
-                    {predictionResult.confidence}%
+                    {predictionResult.accurate}%
                   </div>
                   <div className="mt-2 text-sm text-gray-500">
                     Berdasarkan{" "}
@@ -319,6 +324,7 @@ export default function DashboardUI() {
                   </div>
                 </CardContent>
               </Card>
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-gray-500">
@@ -334,6 +340,19 @@ export default function DashboardUI() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-500">
+                    Tingkat Galat
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">
+                    {predictionResult?.galat}%
+                  </div>
+                </CardContent>
+              </Card> */}
             </div>
           )}
 
