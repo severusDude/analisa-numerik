@@ -107,25 +107,30 @@ export default function DashboardUI() {
 
     setIsLoading(true);
 
+    console.log(selectedAlgorithm);
+
+    const url =
+      selectedAlgorithm === "linear-regression"
+        ? "http://127.0.0.1:5000/api/linearregression"
+        : "http://127.0.0.1:5000/api/extrapolation";
+
     try {
-      const response = await fetch(
-        "http://127.0.0.1:5000/api/linearregression",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            provinsi: selectedProvince,
-          }),
-        }
-      );
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          provinsi: selectedProvince,
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log(data);
 
       setPredictionResult({
         dataPredction: data.data as number,
@@ -181,7 +186,7 @@ export default function DashboardUI() {
                 value={selectedProvince}
                 onValueChange={setSelectedProvince}
               >
-                <SelectTrigger id="province">
+                <SelectTrigger id="province" className="w-full">
                   <SelectValue placeholder="Pilih provinsi" />
                 </SelectTrigger>
                 <SelectContent>
@@ -290,24 +295,26 @@ export default function DashboardUI() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-500">
-                    Tingkat Akurasi
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-sky-600">
-                    {predictionResult.accurate}%
-                  </div>
-                  <div className="mt-2 text-sm text-gray-500">
-                    Berdasarkan{" "}
-                    {selectedAlgorithm === "linear-regression"
-                      ? "Regresi Linier"
-                      : "Ekstrapolasi"}
-                  </div>
-                </CardContent>
-              </Card>
+              {selectedAlgorithm === "linear-regression" && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-gray-500">
+                      Tingkat Akurasi
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-sky-600">
+                      {predictionResult.accurate}%
+                    </div>
+                    <div className="mt-2 text-sm text-gray-500">
+                      Berdasarkan{" "}
+                      {selectedAlgorithm === "linear-regression"
+                        ? "Regresi Linier"
+                        : "Ekstrapolasi"}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               <Card>
                 <CardHeader className="pb-2">
@@ -340,19 +347,6 @@ export default function DashboardUI() {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-500">
-                    Tingkat Galat
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-red-600">
-                    {predictionResult?.galat}%
-                  </div>
-                </CardContent>
-              </Card> */}
             </div>
           )}
 

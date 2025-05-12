@@ -178,20 +178,21 @@ def generate_plot(provinsi, historical_data, prediction_2024):
 
     return plot_base64
 
+
 @app.route("/api/extrapolation", methods=["POST"])
 def extrapolation():
     data = request.get_json()
-    
+
     if data is None or "provinsi" not in data:
         return jsonify({"error": "Invalid input data."}), 400
-    
+
     provinsi = data["provinsi"]
     dataset = pd.read_csv("data/dummy_data.csv")
     dataset = dataset[dataset["Nama Provinsi"] == provinsi]
-    
+
     if dataset.empty:
         return jsonify({"error": "Data not found for the selected province."}), 404
-    
+
     # Prepare data
     df = dataset.rename(
         columns={
@@ -199,79 +200,103 @@ def extrapolation():
             "Pendapatan (juta IDR/kapita/tahun)": "Pendapatan",
             "Konsumsi Energi (kkal/kap/hari)": "KonsumsiEnergi",
         }
-    )[["Tahun", "KonsumsiEnergi"]]
-    
-    # Linear extrapolation for energy consumption
-    x = df["Tahun"].values
-    y = df["KonsumsiEnergi"].values
-    
-    # Calculate linear regression for extrapolation
-    slope, intercept, r_value, p_value, std_err = stats.linregress(x, y)
-    
-    # Predict for 2024
+    )[["Tahun", "Penduduk", "Pendapatan", "KonsumsiEnergi"]]
+
+    # Function to perform linear extrapolation
+    def extrapolate_variable(years, values, target_year):
+        slope, intercept, _, _, _ = stats.linregress(years, values)
+        return slope * target_year + intercept
+
+    # Target year for prediction
     year_2024 = 2024
-    prediksi_2024 = slope * year_2024 + intercept
-    
-    # Calculate growth rate (slope represents absolute change per year)
-    growth_rate = slope / y[-1]  # Relative growth based on last data point
-    
-    # Generate plot
-    plot_base64 = generate_extrapolation_plot(
+
+    # Extrapolate each variable
+    penduduk_2024 = extrapolate_variable(df["Tahun"], df["Penduduk"], year_2024)
+    pendapatan_2024 = extrapolate_variable(df["Tahun"], df["Pendapatan"], year_2024)
+    konsumsi_2024 = extrapolate_variable(df["Tahun"], df["KonsumsiEnergi"], year_2024)
+
+    # Calculate growth rates
+    def calculate_growth_rate(years, values):
+        slope, _, _, _, _ = stats.linregress(years, values)
+        return slope / values.iloc[-1]  # Relative growth based on last data point
+
+    growth_penduduk = calculate_growth_rate(df["Tahun"], df["Penduduk"])
+    growth_pendapatan = calculate_growth_rate(df["Tahun"], df["Pendapatan"])
+    growth_konsumsi = calculate_growth_rate(df["Tahun"], df["KonsumsiEnergi"])
+
+    plot_konsumsi = generate_extrapolation_plot(
         provinsi=provinsi,
-        years=x,
-        values=y,
+        years=df["Tahun"],
+        values=df["KonsumsiEnergi"],
         prediction_year=year_2024,
-        prediction_value=prediksi_2024,
-        slope=slope,
-        intercept=intercept
+        prediction_value=konsumsi_2024,
+        y_label="Konsumsi Energi (kkal/kap/hari)",
+        title="Grafik"
     )
-    
-    return jsonify({
-        "message": "Berhasil menghitung prediksi dengan metode ekstrapolasi linear",
-        "data": prediksi_2024,
-        "provinsi": provinsi,
-        "growth_rate": growth_rate,
-        "plot": plot_base64,
-    })
+
+    return jsonify(
+        {
+            "message": "Berhasil menghitung prediksi dengan metode ekstrapolasi linear",
+            "provinsi": provinsi,
+            "data": konsumsi_2024,
+            "penduduk_2024": penduduk_2024,
+            "pendapatan_2024": pendapatan_2024,
+            "growth_penduduk": growth_penduduk,
+            "growth_pendapatan": growth_pendapatan,
+            "plot": plot_konsumsi,
+        }
+    )
 
 
-def generate_extrapolation_plot(provinsi, years, values, prediction_year, prediction_value, slope, intercept):
-    """Generate plot for extrapolation results"""
+def generate_extrapolation_plot(
+    provinsi, title, years, values, prediction_year, prediction_value, y_label
+):
+    """Generate plot for extrapolation results with customizable title and y-label"""
     plt.figure(figsize=(10, 6))
-    
+
+    # Calculate regression line
+    slope, intercept, _, _, _ = stats.linregress(years, values)
+
     # Historical data
-    plt.scatter(years, values, color='b', label='Data Historis')
-    
+    plt.scatter(years, values, color="b", label="Data Historis")
+
     # Regression line
     x_line = np.array([min(years), prediction_year])
     y_line = slope * x_line + intercept
-    plt.plot(x_line, y_line, 'r--', label='Trend Linear')
-    
+    plt.plot(x_line, y_line, "r--", label="Trend Linear")
+
     # Prediction point
-    plt.scatter(prediction_year, prediction_value, color='r', s=100, label='Prediksi 2024')
+    plt.scatter(
+        prediction_year,
+        prediction_value,
+        color="r",
+        s=100,
+        label=f"Prediksi {prediction_year}",
+    )
     plt.annotate(
         f"{prediction_value:.2f}",
         (prediction_year, prediction_value),
         textcoords="offset points",
         xytext=(0, 10),
-        ha="center"
+        ha="center",
     )
-    
+
     # Format plot
-    plt.title(f"Ekstrapolasi Linear Konsumsi Energi di {provinsi}")
+    plt.title(f"{title} di {provinsi}")
     plt.xlabel("Tahun")
-    plt.ylabel("Konsumsi Energi (kkal/kap/hari)")
+    plt.ylabel(y_label)
     plt.legend()
     plt.grid(True)
-    
+
     # Convert to base64
     buf = io.BytesIO()
     plt.savefig(buf, format="png", dpi=100, bbox_inches="tight")
     buf.seek(0)
     plot_base64 = base64.b64encode(buf.read()).decode("utf-8")
     plt.close()
-    
+
     return plot_base64
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
