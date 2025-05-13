@@ -257,20 +257,20 @@ export default function DashboardUI() {
             </Alert>
           )}
 
-          <div className="mt-8">
-            <h3 className="mb-4 text-lg font-medium">
-              Konsumsi Historis & Prediksi
-            </h3>
-            <div className="h-[400px] md:h-[360px] w-full">
-              {predictionResult?.image && (
-                <img
-                  className="w-full h-full object-contain"
-                  src={`data:image/png;base64,${predictionResult?.image}`}
-                  alt="Plot Konsumsi Energi"
-                />
-              )}
+          {predictionResult?.dataPredction ? (
+            <div className="mt-8">
+              <h3 className="mb-4 text-lg font-medium">Hasil Prediksi</h3>
+              <div className="h-[400px] md:h-[360px] w-full">
+                {predictionResult?.image && (
+                  <img
+                    className="w-full h-full object-contain"
+                    src={`data:image/png;base64,${predictionResult?.image}`}
+                    alt="Plot Konsumsi Energi"
+                  />
+                )}
+              </div>
             </div>
-          </div>
+          ) : null}
 
           {predictionResult && (
             <div className="grid gap-4 md:grid-cols-3">
