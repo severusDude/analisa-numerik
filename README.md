@@ -1,54 +1,33 @@
-# React + TypeScript + Vite
+# Numerical Analysis Computational Toolkit
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive web application for simulating numerical analysis algorithms, root-finding methods, interpolation, and numerical calculus.
 
-Currently, two official plugins are available:
+[![React](https://img.shields.io/badge/React-TypeScript-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-Fast-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## Overview
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+This toolkit provides step-by-step numerical computations and convergence visualizations for complex mathematical problems, bridging theoretical mathematics and software engineering.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Algorithms Included
+
+- **Root-Finding**: Bisection Method, Regula Falsi, Newton-Raphson, and Secant Method.
+- **Linear Systems**: Gaussian Elimination, Gauss-Jordan, and Gauss-Seidel iterations.
+- **Interpolation**: Lagrange Polynomials and Newton's Divided Differences.
+- **Numerical Calculus**: Trapezoidal Rule, Simpson's 1/3 and 3/8 Rules, and Euler's Method.
+
+## Local Execution
+
+```bash
+git clone https://github.com/severusDude/analisa-numerik.git
+cd analisa-numerik
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+<sub>Collaborative Project • Maintained by @severusDude & Collaborators</sub>
